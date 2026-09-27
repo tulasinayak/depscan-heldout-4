@@ -11,7 +11,7 @@ all pins (`requirements.txt` + `requirements-dev.txt`); all 7 are labelled. 3 li
 | CVE-2024-52338 | pyarrow 14.0.0 | likely_not_affected (api_not_used) | Advisory covers the Arrow **R** package only; no R in this project. |
 | CVE-2026-41066 | lxml 5.3.0 | likely_affected (reachable_untrusted_input) | `etree.iterparse()` with default `resolve_entities` on each supplier's `prices.xml` (`reconcile/sources.py:31`); entity-expanded text flows into the reports. |
 | CVE-2025-27516 | jinja2 3.1.5 | likely_not_affected (constant_input) | Sandbox breakout needs attacker-controlled template source in a sandbox; only the packaged `summary.html.j2` is rendered, with a normal `Environment` (`reconcile/report.py:7,30`). |
-| CVE-2024-47081 | requests 2.32.3 | likely_affected (reachable_untrusted_input) | `fetch_attachments()` GETs URLs taken from supplier `manifest.json` with a default Session (trust_env on, no auth) on a host with `~/.netrc` (`reconcile/fetch.py:35`). |
+| CVE-2024-47081 | requests 2.32.3 | uncertain (was likely_affected) (reachable_untrusted_input) | `fetch_attachments()` GETs URLs taken from supplier `manifest.json` with a default Session (trust_env on, no auth) on a host with `~/.netrc` (`reconcile/fetch.py:35`). Uncertain because impact requires a .netrc on the host at run time, which is documented in the README but not visible in the code. |
 | CVE-2026-25645 | requests 2.32.3 | likely_not_affected (api_not_used) | Only direct callers of `requests.utils.extract_zipped_paths()` are affected; the code uses `Session.get` only. |
 | CVE-2024-34062 | tqdm 4.66.2 (dev) | likely_not_affected (dev_only) | Vulnerable path is tqdm's CLI option parsing; tqdm is a dev requirement used only as `tqdm(iterable)` in `scripts/backfill.py:23`. |
 

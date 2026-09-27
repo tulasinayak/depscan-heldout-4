@@ -29,9 +29,9 @@ advisories:
     key_location: reconcile/report.py:30
   - id: CVE-2024-47081
     package: requests
-    expected: likely_affected
+    expected: uncertain
     scenario: reachable_untrusted_input
-    reason: "requests < 2.32.4 can send .netrc credentials to a different host for crafted URLs when no explicit auth is given and trust_env is on. fetch_attachments() GETs every URL listed in a supplier's manifest.json with a default Session (trust_env=True, no auth), and the job runs with a ~/.netrc for the warehouse file server."
+    reason: "Pre-registered as uncertain (was likely_affected): requests < 2.32.4 can send .netrc credentials to a different host for crafted URLs when no explicit auth is given and trust_env is on. fetch_attachments() GETs every URL listed in a supplier's manifest.json with a default Session (trust_env=True, no auth), and the job runs with a ~/.netrc for the warehouse file server. Uncertain because impact requires a .netrc on the host at run time, which is documented in the README but not visible in the code."
     key_location: reconcile/fetch.py:35
   - id: CVE-2026-25645
     package: requests

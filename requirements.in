@@ -1,0 +1,7 @@
+pandas>=2.2,<2.3
+numpy<2
+pyarrow
+lxml
+openpyxl
+jinja2
+requests

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Stock reconciliation - {{ supplier }}</title>
+</head>
+<body>
+  <h1>Stock reconciliation: {{ supplier }}</h1>
+  <p>Generated {{ generated.strftime("%Y-%m-%d %H:%M UTC") }}</p>
+  <table>
+    <thead><tr><th>Status</th><th>Items</th><th>Value at risk</th></tr></thead>
+    <tbody>
+    {% for row in summary %}
+      <tr><td>{{ row.status }}</td><td>{{ row["items"] }}</td><td>{{ "%.2f"|format(row.value_at_risk) }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <h2>Items</h2>
+  {{ table|safe }}
+</body>
+</html>

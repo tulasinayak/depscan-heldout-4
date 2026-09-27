@@ -1,0 +1,90 @@
+# Answer key for depscan-heldout-4 (pandas "stockcheck" batch job).
+# Advisory set = every distinct OSV advisory for every pin in requirements.txt and requirements-dev.txt
+# (checked with heldout-kit/osv_query.py on 2026-09-27): pyarrow 14.0.0 x2, lxml 5.3.0 x1,
+# jinja2 3.1.5 x1, requests 2.32.3 x2, tqdm 4.66.2 x1 = 7. All other pins return 0.
+advisories:
+  - id: CVE-2023-47248
+    package: pyarrow
+    expected: likely_affected
+    scenario: reachable_via_framework
+    reason: "PyArrow 0.14.0-14.0.0 unpickles PyExtensionType metadata when reading IPC/Feather/Parquet, so reading an attacker-supplied Parquet file runs code. load_supplier_stock() calls pandas.read_parquet(engine='pyarrow') on stock.parquet files that suppliers drop into the inbox; pyarrow is never imported directly, the reach is through pandas."
+    key_location: reconcile/sources.py:18
+  - id: CVE-2024-52338
+    package: pyarrow
+    expected: likely_not_affected
+    scenario: api_not_used
+    reason: "The advisory is for the Apache Arrow R package (arrow 4.0.0-16.1.0); it states PyArrow and other bindings are not affected unless used through the R package. This is a pure Python job with no R."
+    key_location: reconcile/sources.py:18
+  - id: CVE-2026-41066
+    package: lxml
+    expected: likely_affected
+    scenario: reachable_untrusted_input
+    reason: "iterparse() in lxml < 6.1 defaults to resolve_entities=True, so XML input can pull in local files through external entities. load_price_feed() runs etree.iterparse() with default options on each supplier's prices.xml, and the parsed description text ends up in the generated reports."
+    key_location: reconcile/sources.py:31
+  - id: CVE-2025-27516
+    package: jinja2
+    expected: likely_not_affected
+    scenario: constant_input
+    reason: "The |attr sandbox breakout needs an attacker who controls template source rendered in a SandboxedEnvironment. The job only renders its own packaged template (PackageLoader 'reconcile/templates', summary.html.j2) with a normal Environment; data values are passed as context, never as template source."
+    key_location: reconcile/report.py:30
+  - id: CVE-2024-47081
+    package: requests
+    expected: likely_affected
+    scenario: reachable_untrusted_input
+    reason: "requests < 2.32.4 can send .netrc credentials to a different host for crafted URLs when no explicit auth is given and trust_env is on. fetch_attachments() GETs every URL listed in a supplier's manifest.json with a default Session (trust_env=True, no auth), and the job runs with a ~/.netrc for the warehouse file server."
+    key_location: reconcile/fetch.py:35
+  - id: CVE-2026-25645
+    package: requests
+    expected: likely_not_affected
+    scenario: api_not_used
+    reason: "Predictable temp file reuse in requests.utils.extract_zipped_paths(); the advisory says only applications calling that function directly are affected. The job only uses Session.get() and RequestException."
+    key_location: reconcile/fetch.py:13
+  - id: CVE-2024-34062
+    package: tqdm
+    expected: likely_not_affected
+    scenario: dev_only
+    reason: "tqdm's command-line entry point (python -m tqdm / tqdm --opts) passes option values to eval. tqdm is a dev requirement imported only in scripts/backfill.py, which just wraps a list in tqdm(); the CLI is never invoked and the batch job never imports it."
+    key_location: scripts/backfill.py:23
+
+expected_sites:
+  - {package: jinja2, location: "reconcile/report.py:5", symbol: jinja2}
+  - {package: jinja2, location: "reconcile/report.py:7", symbol: jinja2.Environment}
+  - {package: jinja2, location: "reconcile/report.py:8", symbol: jinja2.PackageLoader}
+  - {package: jinja2, location: "reconcile/report.py:9", symbol: jinja2.select_autoescape}
+  - {package: jinja2, location: "reconcile/report.py:30", symbol: jinja2.Environment.get_template}
+  - {package: lxml, location: "reconcile/sources.py:4", symbol: lxml.etree}
+  - {package: lxml, location: "reconcile/sources.py:31", symbol: lxml.etree.iterparse}
+  - {package: pyarrow, location: "reconcile/sources.py:18", symbol: "pandas.read_parquet(engine=pyarrow)"}
+  - {package: requests, location: "reconcile/fetch.py:7", symbol: requests}
+  - {package: requests, location: "reconcile/fetch.py:13", symbol: requests.Session}
+  - {package: requests, location: "reconcile/fetch.py:14", symbol: requests.Session.headers}
+  - {package: requests, location: "reconcile/fetch.py:18", symbol: requests.Session.get}
+  - {package: requests, location: "reconcile/fetch.py:35", symbol: requests.Session.get}
+  - {package: requests, location: "reconcile/fetch.py:37", symbol: requests.RequestException}
+  - {package: tqdm, location: "scripts/backfill.py:9", symbol: tqdm}
+  - {package: tqdm, location: "scripts/backfill.py:23", symbol: tqdm.tqdm}
+
+expected_dependencies:
+  - {name: certifi, version: "2026.7.22", scope: main, direct: false, match: none}
+  - {name: charset-normalizer, version: "3.5.1", scope: main, direct: false, match: none}
+  - {name: et-xmlfile, version: "2.0.0", scope: main, direct: false, match: none}
+  - {name: idna, version: "3.20", scope: main, direct: false, match: none}
+  - {name: jinja2, version: "3.1.5", scope: main, direct: true, match: affected}
+  - {name: lxml, version: "5.3.0", scope: main, direct: true, match: affected}
+  - {name: markupsafe, version: "3.0.3", scope: main, direct: false, match: none}
+  - {name: numpy, version: "1.26.4", scope: main, direct: true, match: none}
+  - {name: openpyxl, version: "3.1.5", scope: main, direct: true, match: none}
+  - {name: pandas, version: "2.2.3", scope: main, direct: true, match: none}
+  - {name: pyarrow, version: "14.0.0", scope: main, direct: true, match: affected}
+  - {name: python-dateutil, version: "2.9.0.post0", scope: main, direct: false, match: none}
+  - {name: pytz, version: "2026.4", scope: main, direct: false, match: none}
+  - {name: requests, version: "2.32.3", scope: main, direct: true, match: affected}
+  - {name: six, version: "1.17.0", scope: main, direct: false, match: none}
+  - {name: tzdata, version: "2026.4", scope: main, direct: false, match: none}
+  - {name: urllib3, version: "2.8.0", scope: main, direct: false, match: none}
+  - {name: iniconfig, version: "2.3.0", scope: dev, direct: false, match: none}
+  - {name: packaging, version: "26.3", scope: dev, direct: false, match: none}
+  - {name: pluggy, version: "1.6.0", scope: dev, direct: false, match: none}
+  - {name: pygments, version: "2.21.0", scope: dev, direct: false, match: none}
+  - {name: pytest, version: "9.1.1", scope: dev, direct: true, match: none}
+  - {name: tqdm, version: "4.66.2", scope: dev, direct: true, match: affected}

@@ -2,8 +2,8 @@
 
 pandas batch job (`stockcheck`) that reads supplier Parquet/XML drops, downloads manifest
 attachments with requests, and renders HTML/Excel reports. OSV returns 7 distinct advisories across
-all pins (`requirements.txt` + `requirements-dev.txt`); all 7 are labelled. 3 likely_affected,
-4 likely_not_affected.
+all pins (`requirements.txt` + `requirements-dev.txt`); all 7 are labelled. 2 likely_affected,
+4 likely_not_affected, 1 uncertain.
 
 | advisory | package | expected | why |
 |---|---|---|---|
